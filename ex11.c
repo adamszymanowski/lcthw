@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-int main(void) // NOTE(Adam): unlike in book, it's void here to avoid complier errors
+int main(void) // NOTE(Adam): unlike in book, it's void here to avoid complier warnings
 {
     int numbers  [4] = { 0 };
     char name[4] = { 'a' };
