@@ -1,5 +1,5 @@
-/.vs
-/builds
+msvc/.vs
+msvc/builds
 *.exe
 *.ilk
 *.obj
