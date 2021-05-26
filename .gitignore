@@ -6,3 +6,5 @@ msvc/builds
 *.pdb
 
 db.dat
+
+gcc/builds/*
