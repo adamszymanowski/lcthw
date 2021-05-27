@@ -28,3 +28,11 @@ I'm using `make` right now (just as book intended), but I will probalby experime
 **Usage examples** (inside `gcc` folder)
 - build `make ex01`
 - run `./builds/ex01`
+
+
+# Additional References
+- [GitHub with SSH](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh)
+- [Push to GitHub using SSH Key](https://stackoverflow.com/questions/14762034/push-to-github-without-a-password-using-ssh-key)
+  * `git remote set-url origin git@github.com:<Username>/<Project>.git`
+- [Show remote URL](https://intellipaat.com/community/3102/git-show-remote-url-how-can-i-determine-the-url-that-a-local-git-repository-was-originally-cloned-from)
+  * `git config --get remote.origin.url`
