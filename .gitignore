@@ -4,6 +4,7 @@ msvc/builds
 *.ilk
 *.obj
 *.pdb
+.vscode/
 
 db.dat
 

@@ -15,7 +15,7 @@ It has convinient `x64 Native Tools Command Prompt for VS 2019`, that runs `%com
 
 `build.bat` handles the build process.
 
-**Usage examples**
+**Usage examples** (inside `msvc` folder)
 - build `build ex10.c`
 - run `builds\ex10.exe`
 - debug `devenv builds\ex10.exe`, then I drag-and-drop source code file into Visual Studio.
@@ -25,6 +25,6 @@ Using gcc.
 
 I'm using `make` right now (just as book intended), but I will probalby experiment with something else.
 
-**Usage examples**
+**Usage examples** (inside `gcc` folder)
 - build `make ex01`
 - run `./builds/ex01`
