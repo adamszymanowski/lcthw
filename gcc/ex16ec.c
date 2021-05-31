@@ -1,5 +1,5 @@
 #include <stdio.h>
-// Extra credit
+// Extra credit - passing structs normaly, not as pointers and not using malloc
 
 struct Flower {
     char *name;
