@@ -1,4 +1,5 @@
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -DNDEBUG
+#DNDEBUG is for dbg.h debug macros - used to print debug statements - without it, debug printing disappears
 
 %:
 	@mkdir -p builds
