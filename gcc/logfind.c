@@ -56,44 +56,31 @@ int main(int argc, char *argv[])
 
     FILE *file_contents = fopen(glob_results->gl_pathv[0], "r");
     check(file_contents, "Could not open file: %s", glob_results->gl_pathv[0]);
-    
-    int line_count = 1;
-    size_t current_file_position = 0;
-    size_t current_line_start = 0;
+    check(fseek(file_contents, 0, SEEK_END) == 0, "SEEK_END on file: %s failed", glob_results->gl_pathv[0])
+    const size_t file_size = ftell(file_contents);
+    rewind(file_contents);
 
-    char file_char = fgetc(file_contents);
-    while (file_char != EOF) {
-        if (file_char == '\n') {
-            printf("%s:%d:\t", glob_results->gl_pathv[0], line_count++);
-            
-            fseek(file_contents, current_line_start, 0);
-            char line_char = fgetc(file_contents);
-            
-            while (line_char != '\n') {
-                printf("%c", line_char);
-                line_char = fgetc(file_contents);
-
+    size_t line_count = 1;
+    int newline_flag = 1;
+    for (size_t i = 0; i <= file_size; i++) {
+        char file_char = fgetc(file_contents);
+        if (file_char == EOF) {
+            if (i == 0) {
+                printf("(%s file is empty)\n", glob_results->gl_pathv[0]);
+            } else {
+                printf("\n");
+                break;
             }
-            printf("\n");
-            current_line_start = current_file_position;
-            fseek(file_contents, current_file_position, 0);
         }
-        file_char = fgetc(file_contents);
-        current_file_position = ftell(file_contents);
-    }
-    printf("%s:%d:\t", glob_results->gl_pathv[0], line_count++);
-    
-    fseek(file_contents, current_line_start, 0);
-    char line_char = fgetc(file_contents);
-    while (line_char != '\n') {
 
-        if (line_char == EOF) { 
-            printf("\n");
-            break;
+        if (newline_flag) {
+            printf("%s:%ld:\t", glob_results->gl_pathv[0], line_count++);
+            newline_flag = 0;
         }
-        printf("%c", line_char);
-        line_char = fgetc(file_contents);
 
+        if (file_char == '\n') newline_flag = 1;
+        printf("%c", file_char);
+ 
     }
     fclose(file_contents);
 
