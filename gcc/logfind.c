@@ -6,6 +6,14 @@
 
 #define ARGUMENT_LENGTH_LIMIT 256
 
+typedef struct LinePos {
+    size_t start;
+    size_t end;
+    unsigned int found;
+    struct LinePos *next;
+} LinePos;
+
+
 int main(int argc, char *argv[])
 {
     check(argc == 2, "Need one argument");
@@ -58,31 +66,58 @@ int main(int argc, char *argv[])
     check(file_contents, "Could not open file: %s", glob_results->gl_pathv[0]);
     check(fseek(file_contents, 0, SEEK_END) == 0, "SEEK_END on file: %s failed", glob_results->gl_pathv[0])
     const size_t file_size = ftell(file_contents);
+    debug("file size is %ld", file_size);
     rewind(file_contents);
 
-    size_t line_count = 1;
-    int newline_flag = 1;
-    for (size_t i = 0; i <= file_size; i++) {
+    LinePos *line = malloc(sizeof(LinePos));
+    check(line, "Couldn't allocate memory for line.");
+    line->start = 0;
+    line->end = 0;
+    line->found = 0;
+    line->next = NULL;
+    LinePos *line_linked_list_node = line;
+
+    for (size_t i = 0, s = 0, start = 0; i <= file_size; i++) {
         char file_char = fgetc(file_contents);
-        if (file_char == EOF) {
-            if (i == 0) {
-                printf("(%s file is empty)\n", glob_results->gl_pathv[0]);
-            } else {
-                printf("\n");
-                break;
-            }
+
+        if (argv[1][s] == file_char) {
+            s++;
+        } else {
+            s = 0;
         }
 
-        if (newline_flag) {
-            printf("%s:%ld:\t", glob_results->gl_pathv[0], line_count++);
-            newline_flag = 0;
-        }
+        if (s == arg_len) {
+            line_linked_list_node->found = 1;
+            s = 0;
+        }        
 
-        if (file_char == '\n') newline_flag = 1;
-        printf("%c", file_char);
+        if (file_char == '\n' || file_char == EOF) {
+            line_linked_list_node->start = start;
+            line_linked_list_node->end = i;
+            start = (i < file_size ? i+1 : i);
+            line_linked_list_node->next = malloc(sizeof(LinePos));
+            check(line, "Couldn't allocate memory for line.");
+            line_linked_list_node->next->found = 0;
+            line_linked_list_node->next->next = NULL;
+            line_linked_list_node = line_linked_list_node->next;
+        }
  
     }
+
+    line_linked_list_node = line;
+    if (line_linked_list_node->end != 0) {
+        do {
+            printf("s:%ld, e:%ld, f:%d\n", line_linked_list_node->start, line_linked_list_node->end, line_linked_list_node->found);
+            line_linked_list_node = line_linked_list_node->next;
+            //printf("%s:%ld:\t", glob_results->gl_pathv[0], line_count++);
+
+        } while (line_linked_list_node->next != NULL);
+    }
+
+
+    free(line);
     fclose(file_contents);
+
 
     globfree(glob_results);
     free(glob_results);
