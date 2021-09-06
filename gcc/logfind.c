@@ -6,39 +6,39 @@
 
 #define ARGUMENT_LENGTH_LIMIT 256
 
-typedef struct LinePos {
+// Documentation
+// instead of searching *.log files, it searches *.c files in its current directory
+// the idea behind this decision is it doesn't require any additional setup (it's self-contained)
+// search capabilities:
+// so far it uses only one argument
+
+// linked list for line data 
+typedef struct LinePosition {
     size_t start;
     size_t end;
-    unsigned int found;
-    struct LinePos *next;
-} LinePos;
+    size_t number;
+    int found;
+    struct LinePosition *next;
+} LinePosition;
 
 
 int main(int argc, char *argv[])
 {
     check(argc == 2, "Need one argument");
-    int length_counter = 0;
-    for (int i = 0; argv[1][i] != '\0' && i < ARGUMENT_LENGTH_LIMIT; i++) {
-        length_counter++;
-    }
+    const int arg_len;
+    {
+        int length_counter = 0;
+        for (int i = 0; argv[1][i] != '\0' && i < ARGUMENT_LENGTH_LIMIT; i++) {
+            length_counter++;
+        }
 
-    const int arg_len = length_counter;
+        arg_len = length_counter;
+    }
     debug("%s is %d characters long.", argv[1], arg_len);
 
     glob_t *glob_results = malloc(sizeof(glob_t));
     check(glob_results, "Could not allocate memory for glob_results");
-    int glob_return_value;
-
-    // TODO(Adam):
-    // parse command line arguments
-    // (DONE) set the length limit and get length
-    // * implement or logic
-    // * do not allow multiple ors (or whatever)
-
-    // implement line count
-
-    
-    glob_return_value = glob("*.c", 0, NULL, glob_results);
+    int glob_return_value = glob("*.c", 0, NULL, glob_results);
     
     switch (glob_return_value) {
         case GLOB_NOSPACE: {
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         } break;
 
         default: {
-            log_info("glob successfull");
+            debug("%ld files", glob_results->gl_pathc);
         }
     }
 
@@ -69,15 +69,15 @@ int main(int argc, char *argv[])
     debug("file size is %ld", file_size);
     rewind(file_contents);
 
-    LinePos *line = malloc(sizeof(LinePos));
-    check(line, "Couldn't allocate memory for line.");
-    line->start = 0;
-    line->end = 0;
-    line->found = 0;
-    line->next = NULL;
-    LinePos *line_linked_list_node = line;
+    LinePosition *list_head_for_line = malloc(sizeof(LinePosition));
+    check(list_head_for_line, "Couldn't allocate memory for line.");
+    list_head_for_line->start = 0;
+    list_head_for_line->end = 0;
+    list_head_for_line->found = 0;
+    list_head_for_line->next = NULL;
+    LinePosition *list_node_for_line = list_head_for_line;
 
-    for (size_t i = 0, s = 0, start = 0; i <= file_size; i++) {
+    for (size_t i = 0, s = 0, start = 0, line_number = 1; i <= file_size; i++) {
         char file_char = fgetc(file_contents);
 
         if (argv[1][s] == file_char) {
@@ -87,35 +87,45 @@ int main(int argc, char *argv[])
         }
 
         if (s == arg_len) {
-            line_linked_list_node->found = 1;
+            list_node_for_line->found = 1;
             s = 0;
         }        
 
         if (file_char == '\n' || file_char == EOF) {
-            line_linked_list_node->start = start;
-            line_linked_list_node->end = i;
+            list_node_for_line->start = start;
+            list_node_for_line->end = i;
+            list_node_for_line->number = line_number++;
             start = (i < file_size ? i+1 : i);
-            line_linked_list_node->next = malloc(sizeof(LinePos));
-            check(line, "Couldn't allocate memory for line.");
-            line_linked_list_node->next->found = 0;
-            line_linked_list_node->next->next = NULL;
-            line_linked_list_node = line_linked_list_node->next;
+            list_node_for_line->next = malloc(sizeof(LinePosition));
+            check(list_node_for_line->next, "Couldn't allocate memory for next line.");
+            list_node_for_line->next->found = 0;
+            list_node_for_line->next->next = NULL;
+            list_node_for_line = list_node_for_line->next;
         }
  
     }
 
-    line_linked_list_node = line;
-    if (line_linked_list_node->end != 0) {
+    list_node_for_line = list_head_for_line;
+    if (list_node_for_line->end != 0) {
         do {
-            printf("s:%ld, e:%ld, f:%d\n", line_linked_list_node->start, line_linked_list_node->end, line_linked_list_node->found);
-            line_linked_list_node = line_linked_list_node->next;
-            //printf("%s:%ld:\t", glob_results->gl_pathv[0], line_count++);
+            if (list_node_for_line->found) {
+                printf("%s:%ld:\t", glob_results->gl_pathv[0], list_node_for_line->number);
 
-        } while (line_linked_list_node->next != NULL);
+                check(fseek(file_contents, list_node_for_line->start, 0) == 0, "fseek on file: %s failed", glob_results->gl_pathv[0])
+
+                for (size_t i = 0; i < (list_node_for_line->end-list_node_for_line->start); i++) {
+                    char file_char = fgetc(file_contents);
+                    printf("%c", file_char);
+                }
+            }
+
+            list_node_for_line = list_node_for_line->next;
+
+        } while (list_node_for_line->next != NULL);
+        printf("\n");
     }
 
-
-    free(line);
+    free(list_head_for_line);
     fclose(file_contents);
 
 
