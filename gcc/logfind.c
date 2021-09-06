@@ -25,15 +25,12 @@ typedef struct LinePosition {
 int main(int argc, char *argv[])
 {
     check(argc == 2, "Need one argument");
-    const int arg_len;
-    {
-        int length_counter = 0;
-        for (int i = 0; argv[1][i] != '\0' && i < ARGUMENT_LENGTH_LIMIT; i++) {
-            length_counter++;
-        }
-
-        arg_len = length_counter;
+    int length_counter = 0;
+    for (int i = 0; argv[1][i] != '\0' && i < ARGUMENT_LENGTH_LIMIT; i++) {
+        length_counter++;
     }
+
+    const int arg_len = length_counter;
     debug("%s is %d characters long.", argv[1], arg_len);
 
     glob_t *glob_results = malloc(sizeof(glob_t));
